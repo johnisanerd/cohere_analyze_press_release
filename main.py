@@ -25,9 +25,11 @@ In this example, the model will take in unstructured data from the web, and retu
 Data comes from across the web in unstructured format.  Organizing the data is the first step in developing better business intelligence.
 
 ## A Cohere AI Example
-This example uses the Cohere AI API backend to perform an analysis on the memo and return a structured JSON response.           
-''')
+This example uses the [Cohere AI API](https://docs.cohere.com/) backend to perform an analysis on the memo and return a structured JSON response.           
 
+## See the Code
+You can see the code for this app on [GitHub](https://github.com/johnisanerd/cohere_analyze_press_release)
+''')
 
 st.write('''## Test the Cohere AI API with a URL
 Enter a URL of a deal memo, funding announcement, or press release about a recent venture capital investment.  The AI will analyze the text and return structured data in JSON format.  
@@ -74,25 +76,6 @@ schema_structure = { "type": "json_object",
 COHERE_API_KEY = os.environ["COHERE_API_KEY"]
 co = cohere.Client(api_key=COHERE_API_KEY)
 
-deal_markdown = '''
-March 20 (Reuters) - Cohere, an artificial intelligence startup that develops foundation models to compete with ChatGPT creator OpenAI, is in advanced talks to raise $500 million at a valuation of about $5 billion, according to a person familiar with the matter.
-The Toronto-based company has seen its annualized revenue run rate grow to $22 million this month from $13 million in December as it launched new model Command-R, said the source, who requested anonymity to discuss confidential matters.
-The startup founded by former Google researchers has pitched its growth potential to investors by building enterprise-focused AI models. Cohere, which currently has a partnership with Oracle (ORCL.N)
-, opens new tab, also plans to make its models available on other major cloud providers.
-Cohere was valued at $2.2 billion last June when it raised $270 million from investors including Inovia Capital, Nvidia (NVDA.O)
-, opens new tab and Oracle. The new valuation it is seeking had not been reported previously.
-Reuters in January reported Cohere was looking to raise about $500 million to $1 billion.
-Existing investors are likely to join the latest funding round, the source added.
-If successful, it could be the latest sign of investors' appetite for funding AI startups at high valuations despite moderate revenue numbers, as they bet on the future adoption of AI models.
-Foundation model companies have been racing to raise capital to fund the expensive development of AI models that require huge amount of computing power and top industry talent.
-Cohere is competing with OpenAI and Anthropic, while focusing on business applications of AI.
-OpenAI has projected $1 billion of revenue in 2024, and raised more than $10 billion from investors including Microsoft (MSFT.O)
-, opens new tab. Other AI labs, such as Anthropic and Mistral, have also attracted backing from big tech companies.
-The frenzy to fund loss-making AI labs has raised eyebrows among some venture capital investors who question if the foundation models will ever make enough revenue relative to the huge amount of capital needed to develop them.
-The Information first reported Cohere's December revenue run rate on Wednesday.
-
-'''
-
 def scrape_jina_ai(url: str) -> str:
     '''
     Scrape the page using Jinja AI.  Return the text.
@@ -128,18 +111,9 @@ def scrape_jina_ai(url: str) -> str:
 
     if response.status_code == 429: # Check if the rate limit has been reached
             seconds_to_wait = int(response.headers["Retry-After"]) # Get the number of seconds to wait from the Retry-After header
-            logging.info(f"Rate limit exceeded for {url}. Waiting {seconds_to_wait} seconds before retrying...") # Print a message
+            logging.error(f"Rate limit exceeded for {url}. Waiting {seconds_to_wait} seconds before retrying...") # Print a message
             time.sleep(seconds_to_wait) # Wait for the specified time
             return scrape_jina_ai(url) # Recursively call the function again until the rate limit is lifted
-        
-    # Try to get a resolved URL, so we have the direct URL.  And try to set it to the resolved value.
-    try:
-        direct_response = requests.get(url, allow_redirects=True, headers=headers)
-        # print(f"Direct URL: {direct_response.url}")
-        response.url = direct_response.url
-        # print(f"Response URL: {response.url}")
-    except:
-        pass
 
     return response
 
@@ -199,9 +173,11 @@ btn = st.button(str_submit_button_text,
 
 if btn:
     st.divider()
+    logging.info(f"Analyzing the deal from the URL: {request}")
     with st.spinner('Processing results . . . '):
         analyzed_deal_string = analyze_deal(request)
-    
+        logging.info(analyzed_deal_string)
+
     st.divider()
     analyzed_deal_json = json.loads(analyzed_deal_string)   # analyzed_deal_string is a string in JSON format.  Prettify it.
 
