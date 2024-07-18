@@ -12,6 +12,10 @@ st.set_page_config(page_title="Cohere AI Deal Analysis", page_icon='🧠')
 st.title("Cohere AI Deal Analysis")
 st.write("### Create Structured Data Using Cohere AI.")
 
+st.write('''Enter a URL below of a deal memo, funding announcement, or press release about a recent venture capital investment.  The app will use [Cohere](https://cohere.com/) to analyze the text and return structured data in JSON format.  
+
+''')
+
 with st.sidebar:
     st.write('''## About this App
 This app uses the Cohere AI API to analyze a adeal announcement from a URL.  It will return structured data in JSON format.''')
@@ -31,10 +35,6 @@ This example uses the [Cohere AI API](https://docs.cohere.com/) backend to perfo
 You can see the code for this app on [GitHub](https://github.com/johnisanerd/cohere_analyze_press_release)
 ''')
 
-st.write('''## Test the Cohere AI API with a URL
-Enter a URL of a deal memo, funding announcement, or press release about a recent venture capital investment.  The AI will analyze the text and return structured data in JSON format.  
-
-''')
 
 # Example Deal: https://www.reuters.com/technology/ai-startup-cohere-seeks-5-bln-valuation-latest-fundraising-source-says-2024-03-21/
 # Example Deal: "https://techcrunch.com/2023/06/08/ai-startup-cohere-now-valued-at-over-2-1b-raises-270m/"
@@ -119,14 +119,20 @@ def scrape_jina_ai(url: str) -> str:
 
 def analyze_deal(url: str) -> str:
     # Get the deal text from the URL
-    deal = scrape_jina_ai(url_to_scrape)
-    if deal:
-        deal_text = deal.text
-        st.write("### Deal Text")
-        st.write("The following text was scraped from the URL provided:  ")
-        st.write(deal_text[:1000])
-    else:
+    try:
+        deal = scrape_jina_ai(url_to_scrape)
+        if deal:
+            deal_text = deal.text
+            # st.write("### Deal Text")
+            # st.write("The following text was scraped from the URL provided:  ")
+            # st.write(deal_text[:1000])
+        else:
+            logging.error("Failed to scrape the deal text from the URL.")
+            st.write("An error occurred while trying to scrape the deal text from the URL.")
+            return False
+    except:
         logging.error("Failed to scrape the deal text from the URL.")
+        st.write("An error occurred while trying to scrape the deal text from the URL.")
         return False
     
     deal = co.chat(
@@ -144,7 +150,7 @@ def analyze_deal(url: str) -> str:
 
     return deal.text
 
-str_request_text = 'Enter the url of the deal announcement to analyze.'
+str_request_text = 'Enter the url of the deal to analyze.'
 str_question_text_default = url_to_scrape
 
 str_submit_button_text = 'Strap in, let\'s go!'
@@ -176,7 +182,7 @@ if btn:
     logging.info(f"Analyzing the deal from the URL: {request}")
     with st.spinner('Processing results . . . '):
         analyzed_deal_string = analyze_deal(request)
-        logging.info(analyzed_deal_string)
+        st.write(f"Finished analyzing the deal!")
 
     st.divider()
     analyzed_deal_json = json.loads(analyzed_deal_string)   # analyzed_deal_string is a string in JSON format.  Prettify it.
